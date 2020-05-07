@@ -26,23 +26,13 @@ LABEL maintainer="bastian@schroll-software.de"
 RUN apk add libusb-dev libpulse && \
     pip3 install pyyaml
 
+RUN apk add tzdata && cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && echo "Europe/Berlin" >  /etc/timezone
+
 COPY --from=boswatch /opt/boswatch/ /opt/boswatch/
 COPY --from=multimon /opt/multimon/build/multimon-ng /opt/multimon/multimon-ng
 COPY --from=rtl_fm /opt/rtl_sdr/build/src/ /opt/rtl_sdr/build/src/
 
-# Deps for python-telegram-bot
-# gcc
-# musl-dev -> for limits.h
-# libffi-dev -> for ffi.h
-# libressl-dev -> opensslv.h
-
-RUN apk --no-cache add gcc musl-dev libffi-dev libressl-dev  && \
-pip install python-telegram-bot
-
-RUN rm -rf  /opt/boswatch/config/
 ADD config/ /opt/boswatch/config/
 
 WORKDIR /opt/boswatch/
-
-#CMD ["python", "/opt/boswatch/bw_client.py", "-c", "client.yaml"]
-#CMD ["python", "/opt/boswatch/bw_server.py", "-c", "server.yaml"]
+CMD ["python", "/opt/boswatch/bw_client.py", "-c", "client.yaml"]

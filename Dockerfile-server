@@ -1,0 +1,31 @@
+FROM alpine:3.10 AS build-base
+RUN apk add git make cmake g++ libusb-dev libpulse
+
+FROM alpine:3.10 AS boswatch
+ARG BW_VERSION=develop
+RUN apk add git && \
+    git clone --depth 1 --branch ${BW_VERSION} https://github.com/BOSWatch/BW3-Core.git /opt/boswatch
+
+FROM python:3.6-alpine AS runner
+LABEL maintainer="bastian@schroll-software.de"
+
+RUN pip3 install pyyaml
+RUN apk add tzdata && cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && echo "Europe/Berlin" >  /etc/timezone
+
+
+COPY --from=boswatch /opt/boswatch/ /opt/boswatch/
+
+# Deps for python-telegram-bot
+# gcc
+# musl-dev -> for limits.h
+# libffi-dev -> for ffi.h
+# libressl-dev -> opensslv.h
+
+RUN apk --no-cache add gcc musl-dev libffi-dev libressl-dev  && \
+pip install python-telegram-bot
+
+ADD config/ /opt/boswatch/config/
+
+WORKDIR /opt/boswatch/
+
+CMD ["python", "/opt/boswatch/bw_server.py", "-c", "server.yaml"]

@@ -1,0 +1,17 @@
+---
+version: '3'
+services:
+  bwclient:
+    build:
+      context: ./
+      dockerfile: Dockerfile-client
+    privileged: true
+#    volumes:
+#      - "/dev/bus/usb:/dev/bus/usb"
+
+  bwserver:
+    build:
+      context: ./
+      dockerfile: Dockerfile-server
+    ports:
+     - 8080:8080
